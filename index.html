@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Know Thy Rep</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="if_architecture-interior-06_809115.png">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO"
+        crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css?family=Cinzel" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy"
+        crossorigin="anonymous"></script>
+    <link rel="stylesheet" type="text/css" media="screen" href="style.css" />
+
+</head>
+
+<body>
+
+    <div class="jumbotron jumbotron-fluid">
+        <div class="container-fluid" id="first-container">
+            <h1 class="display-4" id="site-name"><b>Know Thy Rep</b></h1>
+        </div>
+    </div>
+    <div class="card" id="search-card">
+        <div class="card-body" id="search-card-body">
+            <div class="container" id="second-container">
+                <div class="form-group" id="group-1">
+                    <h2 class="search" id="sen-heading">Search for a U.S. Senator<img src="if_search_298865.png" alt="Search icon"></h2>
+                    <input type="text" class="form-control" id="input-senator" placeholder="Enter first and last name (e.g., 'John Doe')">
+                </div>
+                <button type="submit" class="btn btn-primary" id="senator-button">Submit</button>
+                <br>
+                <br>
+                <div class="form-group" id="group-2">
+                    <h2 class="search" id="rep-heading">Search for a U.S. Representative<img src="if_search_298865.png" alt="Search icon"></h2>
+                    <input type="text" class="form-control" id="input-rep" placeholder="Enter first and last name (i.e., 'Jane Doe')">
+                </div>
+                <button type="submit" class="btn btn-primary" id="rep-button">Submit</button>
+            </div>
+        </div>
+    </div>
+    
+
+    <div class="modal" tabindex="-1" role="dialog" id="blank-error-modal">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Error</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>This field cannot be left blank. Please enter a valid name.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" tabindex="-1" role="dialog" id="name-error-modal">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Error</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>The name was entered incorrectly. Please enter a name in the valid format (e.g., "John Doe" or
+                        "Jane Doe").</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid" id="card-container">
+        <div id="results-row" class="row d-flex flex-row align-content-around flex-wrap">
+        <div id="results-col" class="col-6 clearfix mx-auto mt-3">
+            </div>
+        <div id="video-col" class="col-6 clearfix mx-auto mt-3">
+                </div>
+        </div>
+    </div>
+    <div id="video-data-1"></div>
+    <ul id="video-data-2"></ul>
+    
+    <table class="table" id="historyTable">
+            <thead>
+                <tr>
+                    <th scope="col" id="search-hist">Search History</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    
+    <script src="https://www.gstatic.com/firebasejs/5.5.2/firebase.js"></script>
+    <script>
+        var config = {
+            apiKey: "AIzaSyCMu9oPO60_oUFT8Ns4xVVFLe7LG_nmoWE",
+            authDomain: "know-thy-rep.firebaseapp.com",
+            databaseURL: "https://know-thy-rep.firebaseio.com",
+            projectId: "know-thy-rep",
+            storageBucket: "",
+            messagingSenderId: "657204000097"
+        };
+        firebase.initializeApp(config);
+        </script>
+    <script>
+
+        $("#senator-button").on("click", function (event) {
+            event.preventDefault();
+
+            var senator = $("#input-senator").val();
+            var firstNameSen = senator.split(' ')[0];
+            var lastNameSen = senator.split(' ')[1];
+            // console.log(firstNameSen, lastNameSen);
+
+            $("#results-col").empty();
+
+            $.ajax({
+                url: "https://api.propublica.org/congress/v1/115/senate/members.json",
+                headers: {
+                    "X-API-Key": "jfj2luRQdx0aboMuSrnMOFGg3lfHQBT0o7W0HJdr",
+                },
+                method: "GET"
+            }).then(function (response) {
+                console.log(response);
+                var senMembers = response.results[0].members;
+                // console.log(response.results);
+                for (var i = 0; i < senMembers.length; i++) {
+                    //console.log("for loop");
+                    if (firstNameSen === senMembers[i].first_name && lastNameSen === senMembers[i].last_name) {
+                        // console.log("if statement");
+                        var memberId = senMembers[i].id;
+                        var memberUrl = `https://api.propublica.org/congress/v1/members/${memberId}.json`;
+                        $.ajax({
+                            url: memberUrl,
+                            method: 'GET',
+                            headers: {
+                                "X-API-Key": "jfj2luRQdx0aboMuSrnMOFGg3lfHQBT0o7W0HJdr",
+                            }
+                        }).then(function (memberResponse) {
+                            // console.log(memberResponse);
+                            memberResponse.results[0].first_name;
+                            // console.log(memberResponse.results[0].first_name);
+
+                            var data = memberResponse.results[0];
+                            // console.log(data);
+
+                            var newCard = $("<div class='card' id='info-card'>");
+                            // console.log(newCard);
+
+                            var cardBody = $(" <div class='card-body' id='info-card-body'>");
+                            // console.log(cardBody);s
+                            var cardHeading = $("<h1 class='card-title' id='m-info'>").text("Member Information");
+                            var firstName = $("<h2 class='card-title'>").text("First Name: " + data.first_name);
+                            // console.log(firstName);
+                            var middleName = $("<h2 class='card-title'>").text("Middle Name: " + data.middle_name);
+                            var lastName = $("<h2 class='card-title'>").text("Last Name: " + data.last_name);
+                            var dOB = $("<h2 class='card-title'>").text("DoB: " + data.date_of_birth);
+                            var party = $("<h2 class='card-title'>").text("Current Party: " + data.current_party);
+                            var inOffice = $("<h2 class='card-title'>").text("Serving: " + data.in_office);
+                            var mRV = $("<h2 class='card-title'>").text("Most Recent Vote: " + data.most_recent_vote);
+                            var oWeb = $("<h2 class='card-title'>").text("Official Website: " + data.url);
+                            var fB = $("<h2 class='card-title'>").text("Facebook: @" + data.facebook_account);
+                            var twitter = $("<h2 class='card-title'>").text("Twitter: @" + data.twitter_account);
+                            var yT = $("<h2 class='card-title'>").text("YouTube: @" + data.youtube_account);
+
+                            cardBody.append(cardHeading, firstName, middleName, lastName, dOB, party, inOffice, mRV, oWeb, fB, twitter, yT);
+                            // console.log(cardBody.append(firstName, middleName, lastName, dOB, party, inOffice, mRV, oWeb, fB, twitter, yT));    
+
+                            newCard.append(cardBody);
+                            // console.log(newCard.append(cardBody));
+
+                            $("#results-col").append(newCard);
+                            // console.log(newCard.append(cardBody));
+
+                        })
+                        var queryString = 'https://www.googleapis.com/youtube/v3/search?q=' + firstNameSen + '%20' + lastNameSen + '&part=snippet&key=AIzaSyA9b9Lcgpr-ZiueQx8FYSpzNht4kZ00VqA'
+                        $.ajax({
+                            url: queryString,
+                            method: 'GET'
+                        }).then(function (memberResponse) {
+                            console.log(memberResponse);
+                        
+                        
+                       // var title = data['snippet']['title']; 
+                        
+                        for (var i = 0; i < memberResponse.items.length; i++) {
+                         var data = memberResponse.items[i];
+                         var newCard = $("<div class='card' id='video-card'>");
+                            // console.log(newCard);
+                                var youtubeUrl = "https://www.youtube.com/watch?v=";
+                            var cardBody = $(" <div class='card-body' id='video-card-body'>");
+                            // console.log(cardBody);s
+                            var cardHeading = $("<h1 class='card-title' id='m-info'>").text("Latest Videos");
+                                var vidTitle = $("<h2 class='card-title'>").text("Title: " + data.snippet.title);
+                                var thumbNail = $("<img>", {
+                                src: data.snippet.thumbnails.high.url,
+                                width: data.snippet.thumbnails.high.width,
+                                height: data.snippet.thumbnails.high.height,
+                              });
+                              videoId = data['id']['videoId'];
+                              videoUrl = youtubeUrl + videoId;
+                              link = $("<a>", {href:videoUrl, target:"_blank"});
+                                console.log(link);
+                            cardBody.append(cardHeading);
+                            cardBody.append(vidTitle);
+                            link.append(thumbNail);
+                            cardBody.append(link);
+                            
+                            newCard.append(cardBody);
+                            // console.log(newCard.append(cardBody));
+
+                            $("#video-col").append(newCard);
+
+                        
+                         
+                        }
+                        });
+                    }
+                }
+            
+
+            });/////////////////////////////////////////////////////////////////CONGRESS MEMEBERS///////////////////////////////////////////////////////////
+
+        });
+
+        $("#rep-button").on("click", function (event) {
+            event.preventDefault();
+
+            var rep = $("#input-rep").val();
+            var firstNameRep = rep.split(' ')[0];
+            var lastNameRep = rep.split(' ')[1];
+            // console.log(firstNameRep, lastNameRep);
+
+
+
+            $.ajax({
+                url: "https://api.propublica.org/congress/v1/115/house/members.json",
+                headers: {
+                    "X-API-KEY": "jfj2luRQdx0aboMuSrnMOFGg3lfHQBT0o7W0HJdr",
+                },
+                method: "GET"
+            }).then(function (response) {
+                // console.log(response);
+                var houseMembers = response.results[0].members;
+                for (var i = 0; i < houseMembers.length; i++) {
+                    if (firstNameRep === houseMembers[i].first_name && lastNameRep === houseMembers[i].last_name) {
+                        var memberId = houseMembers[i].id;
+                        var memberUrl = `https://api.propublica.org/congress/v1/members/${memberId}.json`;
+                        $.ajax({
+                            url: memberUrl,
+                            method: 'GET',
+                            headers: {
+                                "X-API-Key": "jfj2luRQdx0aboMuSrnMOFGg3lfHQBT0o7W0HJdr",
+                            }
+                        }).then(function (memberResponse) {
+                           // console.log(memberResponse);
+                           memberResponse.results[0].first_name;
+                       // console.log(memberResponse.results[0].first_name);
+
+                       var data = memberResponse.results[0];
+                       // console.log(data);
+
+                       var newCard = $("<div class='card'> id='member-card");
+                       // console.log(newCard);
+
+                       var cardBody = $("<div class='card-body'>");
+                           // console.log(cardBody);
+                           var cardHeading = $("<h1 class='card-title' id='m-info'>").text("Member Information");
+                           var firstName = $("<h2 class='card-title'>").text("First Name: " + data.first_name);
+                           // console.log(firstName);
+                           var middleName =  $("<h2 class='card-title'>").text("Middle Name: " + data.middle_name);
+                           var lastName = $("<h2 class='card-title'>").text("Last Name: " + data.last_name);
+                           var dOB = $("<h2 class='card-title'>").text("DoB: " + data.date_of_birth);
+                           var party = $("<h2 class='card-title'>").text("Current Party: " + data.current_party);
+                           var inOffice = $("<h2 class='card-title'>").text("Serving: " + data.in_office);
+                           var mRV =   $("<h2 class='card-title'>").text("Most Recent Vote: " + data.most_recent_vote);
+                           var oWeb = $("<h2 class='card-title'>").text("Official Website: " + data.url);
+                           var fB = $("<h2 class='card-title'>").text("Facebook: " + data.facebook_account);
+                           var twitter = $("<h2 class='card-title'>").text("Twitter: " + data.twitter_account);
+                           var yT = $("<h2 class='card-title'>").text("YouTube: " + data.youtube_account);
+
+                       cardBody.append(cardHeading, firstName, middleName, lastName, dOB, party, inOffice, mRV, oWeb, fB, twitter, yT);
+                       // console.log(cardBody.append(firstName, middleName, lastName, dOB, party, inOffice, mRV, oWeb, fB, twitter, yT));
+
+                       newCard.append(cardBody);
+                       // console.log(newCard.append(cardBody));
+
+                       $("#results-col").append(newCard);
+                       var queryString = 'https://www.googleapis.com/youtube/v3/search?q=' + firstNameSen + '%20' + lastNameSen + '&part=snippet&key=AIzaSyA9b9Lcgpr-ZiueQx8FYSpzNht4kZ00VqA'
+                        $.ajax({
+                            url: queryString,
+                            method: 'GET'
+                        }).then(function (memberResponse) {
+                            console.log(memberResponse);
+
+                        var data = memberResponse.items[0];
+                            var newCard = $("<div class='card' id='video-card'>");
+                            // console.log(newCard);
+
+                            var cardBody = $(" <div class='card-body' id='video-card-body'>");
+                            // console.log(cardBody);s
+                            var cardHeading = $("<h1 class='card-title' id='m-info'>").text("Latest Videos");
+                                var vidTitle = $("<h2 class='card-title'>").text("Video 1: " + data.snippet.title);
+                                var thumbNail = $("<img>", {
+                                src: data.snippet.thumbnails.high.url,
+                                width: data.snippet.thumbnails.high.width,
+                                height: data.snippet.thumbnails.high.height,
+                              });
+                            cardBody.append(cardHeading);
+                            cardBody.append(vidTitle);
+                            cardBody.append(thumbNail);
+                            
+                            newCard.append(cardBody);
+                            // console.log(newCard.append(cardBody));
+
+                            $("#results-col").append(newCard);
+         
+                         $(this).find("#member-card").addClass("dynamic-css");       
+                        });
+                    });                    }
+                
+                }
+            });
+        });
+    
+
+        
+
+        $("#senator-button").click(function () {
+                event.preventDefault();
+                console.log("Submit function working");
+                var senName = $.trim($("#input-senator.form-control").val());
+
+                if (senName === "") {
+                    $("#blank-error-modal").modal("show");
+                }
+
+                if (!/^(([A-zÀ-ÿ]+[\-\']?)*([A-zÀ-ÿ]+)?\s)+([A-zÀ-ÿ]+[\-\']?)*([A-zÀ-ÿ]+)?$/.test(senName) && senName !== "") {
+                    $("#input-senator.form-control").val("");
+                    $("#name-error-modal").modal("show");
+                }
+            });
+
+            $("#rep-button").click(function () {
+                event.preventDefault();
+                console.log("Submit function working");
+                var repName = $.trim($("#input-rep.form-control").val());
+
+                if (repName === "") {
+                    $("#blank-error-modal").modal("show");
+                }
+
+                if (!/^(([A-zÀ-ÿ]+[\-\']?)*([A-zÀ-ÿ]+)?\s)+([A-zÀ-ÿ]+[\-\']?)*([A-zÀ-ÿ]+)?$/.test(repName) && repName !== "") {
+                    $("#input-rep.form-control").val("");
+                    $("#name-error-modal").modal("show");
+                }
+            });
+            var database = firebase.database();
+
+            $("#senator-button").click(function () {
+                event.preventDefault();
+                var sName = $("#input-senator").val().trim();
+
+                var senSearchInfo = {
+                    SenatorName: sName,
+                };
+
+                database.ref().push(senSearchInfo);
+                $("#input-senator").val("");
+            });
+
+            $("#rep-button").click(function () {
+                event.preventDefault();
+                var rName = $("#input-rep").val().trim();
+
+                var repSearchInfo = {
+                    RepName: rName,
+                };
+
+                database.ref().push(repSearchInfo);
+                $("#input-rep").val("");
+            });
+
+            database.ref().on("child_added", function (childSnapshot) {
+                var sName = childSnapshot.val().SenatorName;
+                var rName = childSnapshot.val().RepName;
+
+                var newSTR = $("<tr>").append($("<td>").text(sName));
+                var newRTR = $("<tr>").append($("<td>").text(rName));
+
+                if (sName) {
+                    $("#historyTable > tbody").append(newSTR);
+                }
+                if (rName) {
+                    $("#historyTable > tbody").append(newRTR);
+                }
+
+            });
+    </script>
+
+
+</body>
+
+</html>
